@@ -3,6 +3,9 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import { useForm } from 'react-hook-form';
 import { Box, Button, FormControl, FormLabel, Input, Text, FormErrorMessage, VStack, Heading, Container, Center, Select } from '@chakra-ui/react';
+import { SignProtocolClient, SpMode, EvmChains } from '@ethsign/sp-sdk';
+import { useAccount, useWalletClient } from 'wagmi';
+import { useSigner } from '../utils';
 
 type FormData = {
   dappName: string;
@@ -10,11 +13,39 @@ type FormData = {
   rating: number;
 };
 
+
+
 const Home: NextPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
-
-  const onSubmit = (data: FormData) => {
+  const { address, isConnecting, isDisconnected } = useAccount()
+  const client = new SignProtocolClient(SpMode.OnChain, {
+    chain: EvmChains.arbitrumSepolia,
+    account: walletClient
+  });
+  
+  async function createNotaryAttestation(dappName: string, comments: string, rating: number, address:  any) {
+    try {
+      const res = await client.createAttestation({
+        schemaId: "onchain_evm_421614_0xe8", // Use the appropriate schemaId for your attestations
+        data: {
+          dappName,
+          comments,
+          rating
+        },
+        indexingValue: address.toLowerCase(),
+      });
+      console.log('Attestation created:', res);
+    } catch (error) {
+      console.error('Error creating attestation:', error);
+    }
+  }
+  const onSubmit = async (data: FormData) => {
+    // Assume `signer` is the connected account from RainbowKit or window.ethereum
+    const signer = useSigner();
     console.log(data);
+
+    // Create an attestation using the submitted form data
+    await createNotaryAttestation(data.dappName, data.comments, data.rating, address);
   };
 
   return (
@@ -28,7 +59,6 @@ const Home: NextPage = () => {
       <Box textAlign="center" py={10}>
         <Center py={10}>
           <ConnectButton />
-
         </Center>
 
         <Heading pt={10} as="h1" size="xl" mb={6}>
@@ -67,7 +97,7 @@ const Home: NextPage = () => {
             </FormErrorMessage>
           </FormControl>
 
-          <Button colorScheme="purple" type="submit" >
+          <Button colorScheme="purple" type="submit">
             Submit Feedback
           </Button>
         </VStack>
