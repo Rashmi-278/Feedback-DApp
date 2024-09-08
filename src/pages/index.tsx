@@ -6,6 +6,7 @@ import { Box, Button, FormControl, FormLabel, Input, Text, FormErrorMessage, VSt
 import { SignProtocolClient, SpMode, EvmChains } from '@ethsign/sp-sdk';
 import { useAccount, useWalletClient } from 'wagmi';
 import { useSigner } from '../utils';
+import { privateKeyToAccount } from 'viem/accounts';
 
 type FormData = {
   dappName: string;
@@ -20,7 +21,7 @@ const Home: NextPage = () => {
   const { address, isConnecting, isDisconnected } = useAccount()
   const client = new SignProtocolClient(SpMode.OnChain, {
     chain: EvmChains.arbitrumSepolia,
-    account: walletClient
+    account: privateKeyToAccount("0xsakfjjjjj")
   });
   
   async function createNotaryAttestation(dappName: string, comments: string, rating: number, address:  any) {
